@@ -78,6 +78,8 @@
   - Tagline 2: e.g., "2 Fun to Put Down"
   - Tagline 3: e.g., "There's Something for Everyone"
 
--- **Sketches/Logo**:
+**Sketches/Logo**:
+
+
 ![image](2rcade.png)
 ---

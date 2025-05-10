@@ -1,14 +1,22 @@
 /* ---------- Global Layout ---------- */
 body {
+    font-family: "Press Start 2P", monospace;
+    /* new font */
     background: #111;
     color: #fafafa;
-    font-family: Arial, sans-serif;
     text-align: center;
     padding: 40px 12px;
 }
 
 h1 {
     margin-bottom: 24px;
+    letter-spacing: 1px;
+}
+
+button,
+select,
+input {
+    font-family: inherit;
 }
 
 /* ---------- Setup Screen ---------- */

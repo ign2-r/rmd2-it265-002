@@ -1,0 +1,99 @@
+/* -------------- common -------------- */
+body {
+    background: #111;
+    color: #fafafa;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 40px 12px;
+}
+
+h1 {
+    margin-bottom: 24px;
+}
+
+/* -------------- setup screen -------------- */
+#nameInputs input {
+    display: block;
+    margin: 6px auto;
+    padding: 6px;
+    width: 180px;
+    text-align: center;
+}
+
+/* -------------- scoreboard -------------- */
+#scoreboard {
+    display: inline-block;
+    margin-bottom: 26px;
+}
+
+/* one row per player */
+.playerRow {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+/* name label */
+.playerLabel {
+    width: 90px;
+    background: #333;
+    border: 2px solid #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* frame boxes */
+.frame {
+    position: relative;
+    width: 50px;
+    height: 45px;
+    border: 2px solid #fafafa;
+    background: #222;
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.tenth {
+    width: 65px;
+}
+
+.frame span {
+    line-height: 1rem;
+}
+
+.r1,
+.r2,
+.r3 {
+    display: block;
+}
+
+.num {
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    font-size: 0.55rem;
+    color: #bbb;
+}
+
+/* total box */
+.totalBox {
+    width: 70px;
+    border: 2px solid #00c37e;
+    background: #00281d;
+    color: #00ff9c;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.totalBox span {
+    font-size: 0.55rem;
+    color: #66ffc7;
+}

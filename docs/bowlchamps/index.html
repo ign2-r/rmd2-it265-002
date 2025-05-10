@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Bowl Champs</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ========== LANDING / SETUP ========== -->
+    <section id="setupScreen">
+        <h1>Bowl Champs</h1>
+
+        <label>
+            Players:
+            <select id="playerCount">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
+        </label>
+
+        <div id="nameInputs"></div>
+
+        <button id="startBtn">Start Game</button>
+    </section>
+
+    <!-- ========== GAMEPLAY ========== -->
+    <section id="gameScreen" style="display:none;">
+        <h1>Bowl Champs</h1>
+        <div id="scoreboard"></div>
+
+        <button id="rollBtn">Roll D10</button>
+        <p id="result">Click Roll to begin.</p>
+    </section>
+
+    <script src="game.js"></script>
+</body>
+
+</html>

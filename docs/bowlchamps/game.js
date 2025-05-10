@@ -259,14 +259,14 @@ function ballMod(hit, zone, type) {
    5.  ROLL PROCESSING (returns actual pins)
 ==================================================================== */
 function firePins(requestPins) {
-    const p = players[currentPlayerIdx];
-    if (p.done) { nextPlayer(); return 0; }
+    const idx = currentPlayerIdx;          // ← remember whose turn this is
+    const p = players[idx];
 
     const hit = p.currentFrame < 9
         ? rollRegular(p, requestPins)
         : rollTenth(p, requestPins);
 
-    updateRunningTotal(p);
+    updateRunningTotal(p, idx);
     updateActiveHighlight();
     return hit;
 }
@@ -338,10 +338,10 @@ function nextPlayer() {
 /* ====================================================================
    6.  SCORING UTILITIES
 ==================================================================== */
-function updateRunningTotal(p) {
-    const totals = calcTotals(p.frames);
-    getTotalCell(currentPlayerIdx).textContent = totals[totals.length - 1] ?? 0;
-}
+function updateRunningTotal(player, idx) {
+    const totals = calcTotals(player.frames);
+    getTotalCell(idx).textContent = totals[totals.length - 1] ?? 0;
+  }
 
 /* cumulate scores following bowling rules */
 function calcTotals(frms) {

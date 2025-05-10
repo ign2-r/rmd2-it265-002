@@ -1,4 +1,4 @@
-/* -------------- common -------------- */
+/* ---------- Global Layout ---------- */
 body {
     background: #111;
     color: #fafafa;
@@ -11,30 +11,27 @@ h1 {
     margin-bottom: 24px;
 }
 
-/* -------------- setup screen -------------- */
+/* ---------- Setup Screen ---------- */
 #nameInputs input {
     display: block;
+    width: 190px;
     margin: 6px auto;
     padding: 6px;
-    width: 180px;
     text-align: center;
 }
 
-/* -------------- scoreboard -------------- */
-#scoreboard {
-    display: inline-block;
-    margin-bottom: 26px;
-}
-
-/* one row per player */
+/* ---------- Scoreboard ---------- */
 .playerRow {
     display: flex;
+    /* rows stack vertically */
     justify-content: center;
     gap: 6px;
-    margin-bottom: 6px;
+    margin: 0 auto 6px;
+    /* center row; outline hugs content */
+    width: max-content;
+    /* prevents full‑page stretch */
 }
 
-/* name label */
 .playerLabel {
     width: 90px;
     background: #333;
@@ -45,7 +42,6 @@ h1 {
     font-weight: bold;
 }
 
-/* frame boxes */
 .frame {
     position: relative;
     width: 50px;
@@ -63,10 +59,6 @@ h1 {
     width: 65px;
 }
 
-.frame span {
-    line-height: 1rem;
-}
-
 .r1,
 .r2,
 .r3 {
@@ -81,7 +73,6 @@ h1 {
     color: #bbb;
 }
 
-/* total box */
 .totalBox {
     width: 70px;
     border: 2px solid #00c37e;
@@ -96,4 +87,34 @@ h1 {
 .totalBox span {
     font-size: 0.55rem;
     color: #66ffc7;
+}
+
+/* ---------- Lane + Ball ---------- */
+#laneWrap {
+    position: relative;
+    width: 400px;
+    height: 300px;
+    margin: 20px auto 26px;
+}
+
+#laneImg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+#ballImg {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    left: calc(50% - 60px);
+    /* default: bottom‑center */
+    bottom: 0;
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.15s;
+}
+
+#ballImg.dragging {
+    opacity: 0.7;
 }

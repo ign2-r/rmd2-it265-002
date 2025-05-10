@@ -222,8 +222,38 @@ function pinsFromSkill(zone, speed) {
     const fast = zone === "middle" ? [8, 10] : zone.startsWith("gutter") ? [0, 6] : [5, 9];
     const tier = speed < 250 ? slow : speed < 700 ? medium : fast;
     const [min, max] = tier;
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    let raw = Math.floor(Math.random() * (max - min + 1)) + min;
+
+    /* apply ball type modifier */
+    const ballType = players[currentPlayerIdx].ball;   // "plastic" | "urethane" | "reactive"
+    return ballMod(raw, zone, ballType);
 }
+
+/* ------------------------------------------------------------------
+   Ball behaviour tweaks
+   ------------------------------------------------------------------
+   plastic  → baseline (no change)
+   urethane → +1 pin when you’ve already hit ≥ 2  (a bit more carry)
+   reactive → big carry in the scoring zones (+2), but riskier edges (‑1)
+------------------------------------------------------------------- */
+function ballMod(hit, zone, type) {
+    switch (type) {
+        case "urethane":
+            return hit >= 2 ? Math.min(hit + 1, 10) : hit;
+
+        case "reactive":
+            if (zone === "middle" || zone === "left" || zone === "right")
+                return Math.min(hit + 2, 10);          // extra power
+            if (zone.startsWith("gutter"))
+                return Math.max(hit - 1, 0);           // harsher miss
+            return hit;
+
+        /* plastic / default */
+        default:
+            return hit;
+    }
+}
+  
 
 /* ====================================================================
    5.  ROLL PROCESSING (returns actual pins)

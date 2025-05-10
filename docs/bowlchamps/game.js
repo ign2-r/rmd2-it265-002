@@ -16,6 +16,13 @@ const laneWrap = document.getElementById("laneWrap");
 const ballImg = document.getElementById("ballImg");
 const rollBtn = document.getElementById("rollBtn");   // dev shortcut
 
+const BALL_SRC = {
+    reactive: "assets/balls/ball_reactive.png",
+    urethane: "assets/balls/ball_urethane.png",
+    plastic: "assets/balls/ball_plastic.png"
+};
+  
+
 /* ---------- Audio ---------- */
 const SFX = {
     roll: document.getElementById("sfxRoll"),
@@ -34,19 +41,6 @@ function playResultSfx(pins) {
 /* ====================================================================
    1.  SETUP SCREEN
 ==================================================================== */
-playerCountSel.addEventListener("change", buildNameInputs);
-buildNameInputs();
-
-function buildNameInputs() {
-    const n = +playerCountSel.value;
-    nameInputsDiv.innerHTML = "";
-    for (let i = 0; i < n; i++) {
-        const inp = document.createElement("input");
-        inp.placeholder = `Player ${i + 1} name`;
-        inp.value = `P${i + 1}`;
-        nameInputsDiv.appendChild(inp);
-    }
-}
 
 startBtn.addEventListener("click", () => {
     const names = [...nameInputsDiv.querySelectorAll("input")]
@@ -59,6 +53,7 @@ startBtn.addEventListener("click", () => {
     setupScreen.style.display = "none";
     gameScreen.style.display = "block";
     resetBallPos();          // ensure correct spawn after lane visible
+    ballImg.src = BALL_SRC[players[0].ball];
 });
 
 /* ====================================================================
@@ -69,8 +64,10 @@ let currentPlayerIdx = 0;
 
 /* initialise players & board */
 function initGame(names) {
-    players = names.map(name => ({
-        name,
+    const rows = [...document.querySelectorAll("#nameInputs div")];
+    players = names.map((n, i) => ({
+        name: n,
+        ball: rows[i].querySelector("select").value,
         frames: Array.from({ length: 10 }, () => ({ rolls: [], pinsLeft: 10 })),
         currentFrame: 0,
         rollInFrame: 0,
@@ -209,21 +206,54 @@ rollBtn.addEventListener("click", () => {
    4.  SKILL TABLE (zone + speed → requested pins)
 ==================================================================== */
 function getZone(nx) {
-    if (nx < 0.2) return "gutterL";
-    if (nx < 0.4) return "left";
-    if (nx < 0.6) return "middle";
-    if (nx < 0.8) return "right";
-    return "gutterR";
-}
+    if (nx < 0.15) return "hardGutter";      // far‑left 15 %
+    if (nx < 0.30) return "gutterL";         // soft gutter left
+    if (nx < 0.45) return "left";
+    if (nx < 0.55) return "middle";
+    if (nx < 0.70) return "right";
+    if (nx < 0.85) return "gutterR";         // soft gutter right
+    return "hardGutter";                     // far‑right 15 %
+  }
 function pinsFromSkill(zone, speed) {
     /* ranges tuned for feel */
+    if (zone === "hardGutter") return 0;   // immediate zero
     const slow = zone === "middle" ? [2, 6] : zone.startsWith("gutter") ? [0, 2] : [1, 4];
     const medium = zone === "middle" ? [5, 9] : zone.startsWith("gutter") ? [0, 4] : [3, 7];
     const fast = zone === "middle" ? [8, 10] : zone.startsWith("gutter") ? [0, 6] : [5, 9];
     const tier = speed < 250 ? slow : speed < 700 ? medium : fast;
     const [min, max] = tier;
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    let raw = Math.floor(Math.random() * (max - min + 1)) + min;
+
+    /* apply ball type modifier */
+    const ballType = players[currentPlayerIdx].ball;   // "plastic" | "urethane" | "reactive"
+    return ballMod(raw, zone, ballType);
 }
+
+/* ------------------------------------------------------------------
+   Ball behaviour tweaks
+   ------------------------------------------------------------------
+   plastic  → baseline (no change)
+   urethane → +1 pin when you’ve already hit ≥ 2  (a bit more carry)
+   reactive → big carry in the scoring zones (+2), but riskier edges (‑1)
+------------------------------------------------------------------- */
+function ballMod(hit, zone, type) {
+    switch (type) {
+        case "urethane":
+            return hit >= 2 ? Math.min(hit + 1, 10) : hit;
+
+        case "reactive":
+            if (zone === "middle" || zone === "left" || zone === "right")
+                return Math.min(hit + 2, 10);          // extra power
+            if (zone.startsWith("gutter"))
+                return Math.max(hit - 1, 0);           // harsher miss
+            return hit;
+
+        /* plastic / default */
+        default:
+            return hit;
+    }
+}
+  
 
 /* ====================================================================
    5.  ROLL PROCESSING (returns actual pins)
@@ -301,6 +331,7 @@ function nextPlayer() {
     do {
         currentPlayerIdx = (currentPlayerIdx + 1) % players.length;
     } while (players[currentPlayerIdx].done);
+    ballImg.src = BALL_SRC[players[currentPlayerIdx].ball];  // switch sprite
     resultP.textContent = `${players[currentPlayerIdx].name}, your turn!`;
 }
 

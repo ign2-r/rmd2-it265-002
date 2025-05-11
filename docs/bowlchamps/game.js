@@ -14,7 +14,9 @@ const resultP = document.getElementById("result");
 
 const laneWrap = document.getElementById("laneWrap");
 const ballImg = document.getElementById("ballImg");
-const rollBtn = document.getElementById("rollBtn");   // dev shortcut
+const rackImg = document.getElementById("rackImg");
+
+let frameAdvanced = false;        // set true whenever advanceFrame() runs
 
 const BALL_SRC = {
     reactive: "assets/balls/ball_reactive.png",
@@ -143,6 +145,13 @@ function updateActiveHighlight() {
             (i === currentPlayerIdx && !players[i].done) ? "3px solid #f0ff38" : "none";
     });
 }
+/* ----- rack helpers ----- */
+function rackFull() { rackImg.src = "assets/pins/fullrack.png"; }
+function rackEmpty() { rackImg.src = "assets/pins/emptyrack.png"; }
+function rackLeave(hit) {            // hit = pins knocked on 1st ball
+    if (hit >= 1 && hit <= 9) rackImg.src = `assets/pins/${hit}.png`;
+}
+
 
 /* ====================================================================
    3.  DRAG‑TO‑BOWL MECHANIC
@@ -199,9 +208,13 @@ function finishDrag(e) {
         /* 1.5s pause for reading */
         setTimeout(() => {
             resetBallPos();
+            if(frameAdvanced){              // only right after frame ends
+                rackFull();                   // show full rack now
+                frameAdvanced = false;        // clear flag
+            }
             ballImg.style.display = "block";
             laneWrap.style.pointerEvents = "auto";
-        }, 1500);
+        }, 3000);
     }, 2000);
 }
 
@@ -281,25 +294,49 @@ function firePins(requestPins) {
     return hit;
 }
 
-/* ----- Frames 1‑9 ----- */
+/* ----- Frames 1‑9 (3‑s delay & open‑frame leave) ----- */
 function rollRegular(p, request) {
     const f = p.frames[p.currentFrame];
-    const hit = Math.min(request, f.pinsLeft);
+    const hit = Math.min(request, f.pinsLeft);     // pins actually knocked
     f.rolls.push(hit);
     f.pinsLeft -= hit;
 
+    /* ----- rack overlay update for FIRST shot ----- */
+    if (p.rollInFrame === 0) {
+        if (hit === 10) rackEmpty();          // strike – empty rack
+        else rackLeave(hit);       // 1‑9 leave after first ball
+    }
+
+    /* write mark to scoreboard */
     const mark = (p.rollInFrame === 0 && hit === 10) ? "X" :
         (p.rollInFrame === 1 && f.rolls[0] + hit === 10) ? "/" :
             (hit === 0 ? "‑" : hit);
-    getFrameCell(currentPlayerIdx, p.currentFrame, p.rollInFrame + 1).textContent = mark;
-    resultP.textContent = `${p.name}: Frame ${p.currentFrame + 1} Roll ${p.rollInFrame + 1} – ${hit}`;
+    getFrameCell(currentPlayerIdx, p.currentFrame, p.rollInFrame + 1)
+        .textContent = mark;
 
-    if (p.rollInFrame === 0 && hit === 10) advanceFrame(p);      // strike
-    else if (p.rollInFrame === 1) advanceFrame(p);      // second roll done
-    else p.rollInFrame = 1;
+    resultP.textContent =
+        `${p.name}: Frame ${p.currentFrame + 1} Roll ${p.rollInFrame + 1} – ${hit}`;
+
+    /* ----- frame control ----- */
+    if (p.rollInFrame === 0 && hit === 10) {           /* STRIKE */
+        setTimeout(() => advanceFrame(p), 3000);          // pause 3 s
+    }
+    else if (p.rollInFrame === 1) {                    /* second ball done */
+        if (f.pinsLeft === 0) {                          /* SPARE */
+            rackEmpty();                                  // cleared deck
+        } else {                                          /* OPEN FRAME */
+            rackLeave(f.pinsLeft);                        // show final leave
+        }
+        setTimeout(() => advanceFrame(p), 3000);          // pause 3 s
+    }
+    else {
+        p.rollInFrame = 1;                              // prepare for 2nd ball
+    }
 
     return hit;
 }
+  
+  
 
 /* ----- Frame 10 ----- */
 function rollTenth(p, request) {
@@ -328,14 +365,16 @@ function rollTenth(p, request) {
 
 /* ----- Frame advance / rotation ----- */
 function advanceFrame(p) {
-    p.currentFrame++; p.rollInFrame = 0;
+    frameAdvanced = true;           // mark that we just finished a frame
+    p.currentFrame++;
+    p.rollInFrame = 0;
     if (p.currentFrame >= 10) p.done = true;
     nextPlayer();
 }
+  
 function nextPlayer() {
     if (!players.some(pl => !pl.done)) {
         resultP.textContent += "  •  Game complete!";
-        rollBtn.disabled = true;
         return;
     }
     do {
@@ -343,6 +382,8 @@ function nextPlayer() {
     } while (players[currentPlayerIdx].done);
     ballImg.src = BALL_SRC[players[currentPlayerIdx].ball];  // switch sprite
     resultP.textContent = `${players[currentPlayerIdx].name}, your turn!`;
+
+    updateActiveHighlight();
 }
 
 /* ====================================================================

@@ -1,7 +1,6 @@
 /* ---------- Global Layout ---------- */
 body {
     font-family: "Press Start 2P", monospace;
-    /* new font */
     background: #111;
     color: #fafafa;
     text-align: center;
@@ -31,13 +30,10 @@ input {
 /* ---------- Scoreboard ---------- */
 .playerRow {
     display: flex;
-    /* rows stack vertically */
     justify-content: center;
     gap: 6px;
     margin: 0 auto 6px;
-    /* center row; outline hugs content */
     width: max-content;
-    /* prevents full‑page stretch */
 }
 
 .playerLabel {
@@ -102,7 +98,8 @@ input {
     position: relative;
     width: 400px;
     height: 300px;
-    margin: 20px auto 26px;
+    margin: 200px auto 26px;
+    /* shifted DOWN 180 px */
 }
 
 #laneImg {
@@ -116,7 +113,6 @@ input {
     width: 120px;
     height: 120px;
     left: calc(50% - 60px);
-    /* default: bottom‑center */
     bottom: 0;
     cursor: pointer;
     user-select: none;
@@ -126,3 +122,21 @@ input {
 #ballImg.dragging {
     opacity: 0.7;
 }
+
+/* ---------- Pin Rack (overlay) ---------- */
+#rackImg {
+    position: absolute;
+    width: 225px;
+    left: 50%;
+    transform: translateX(-50%);
+    top: -200px;
+    /* sits just above the lowered lane */
+    pointer-events: none;
+}
+
+/* ---------- Result Text ---------- */
+#result {
+    margin-top: 60px;
+}
+
+/* extra space below the lane */

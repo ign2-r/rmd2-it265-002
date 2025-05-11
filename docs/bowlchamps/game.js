@@ -34,6 +34,7 @@ const SFX = {
     many: document.getElementById("sfxMany"),
     strike: document.getElementById("sfxStrike"),
     ooh: document.getElementById("sfxOoh"),
+    spare: document.getElementById('sfxSpare')
 };
 function playResultSfx(pins) {
     if (pins === 10) {                    // STRIKE
@@ -61,12 +62,9 @@ function playResultSfx(pins) {
 ==================================================================== */
 
 startBtn.addEventListener("click", () => {
-    const names = [...nameInputsDiv.querySelectorAll("input")]
-        .map(i => i.value.trim() || "Player");
-    if (names.length < 2) {
-        alert("League play needs at least 2 competitors.");
-        return;
-    }
+    const nameInputs = [...document.querySelectorAll('#nameInputs .playerRowSetup input:not([type="radio"])')];
+    const names = nameInputs.map(i => i.value.trim() || 'Player');
+    
     initGame(names);
     setupScreen.style.display = "none";
     gameScreen.style.display = "block";
@@ -82,19 +80,21 @@ let currentPlayerIdx = 0;
 
 /* initialise players & board */
 function initGame(names) {
-    const rows = [...document.querySelectorAll("#nameInputs div")];
-    players = names.map((n, i) => ({
-        name: n,
-        ball: rows[i].querySelector("select").value,
+    const rows = [...document.querySelectorAll('#nameInputs .playerRowSetup')];
+
+    players = rows.map((row, i) => ({
+        name: names[i],
+        ball: row.querySelector('input[type="radio"]:checked').value,
         frames: Array.from({ length: 10 }, () => ({ rolls: [], pinsLeft: 10 })),
-        currentFrame: 0,
-        rollInFrame: 0,
-        done: false
+        currentFrame: 0, rollInFrame: 0, done: false
     }));
+
     buildScoreboard();
+    lockNameWidths();
     updateActiveHighlight();
     resultP.textContent = `${players[0].name}, drag the ball to start!`;
-}
+}  
+  
 
 /* build scoreboard rows */
 function buildScoreboard() {
@@ -126,6 +126,23 @@ function buildScoreboard() {
 
         scoreboardDiv.appendChild(row);
     });
+}
+
+function lockNameWidths() {
+    const labels = [...document.querySelectorAll('.playerLabel')];
+    let max = 0;
+
+    /* measure text width with a hidden span in the same font */
+    labels.forEach(l => {
+        const probe = document.createElement('span');
+        probe.style.font = getComputedStyle(l).font;
+        probe.style.visibility = 'hidden'; probe.textContent = l.textContent;
+        document.body.appendChild(probe);
+        max = Math.max(max, probe.getBoundingClientRect().width);
+        probe.remove();
+    });
+
+    labels.forEach(l => l.style.width = (max + 20) + 'px');   // + padding
 }
 
 /* helpers */
@@ -294,47 +311,53 @@ function firePins(requestPins) {
     return hit;
 }
 
-/* ----- Frames 1‑9 (3‑s delay & open‑frame leave) ----- */
+/* ----- Frames 1-9 (3 s delay, correct open-frame leave) ----- */
 function rollRegular(p, request) {
     const f = p.frames[p.currentFrame];
-    const hit = Math.min(request, f.pinsLeft);     // pins actually knocked
+    const hit = Math.min(request, f.pinsLeft);    // pins knocked this ball
     f.rolls.push(hit);
     f.pinsLeft -= hit;
 
-    /* ----- rack overlay update for FIRST shot ----- */
+    /* rack overlay for FIRST shot */
     if (p.rollInFrame === 0) {
-        if (hit === 10) rackEmpty();          // strike – empty rack
-        else rackLeave(hit);       // 1‑9 leave after first ball
+        if (hit === 10) rackEmpty();                // strike
+        else rackLeave(hit);             // show hit count
     }
 
-    /* write mark to scoreboard */
+    /* mark the cell */
     const mark = (p.rollInFrame === 0 && hit === 10) ? "X" :
         (p.rollInFrame === 1 && f.rolls[0] + hit === 10) ? "/" :
-            (hit === 0 ? "‑" : hit);
-    getFrameCell(currentPlayerIdx, p.currentFrame, p.rollInFrame + 1)
-        .textContent = mark;
+            (hit === 0 ? "-" : hit);
+    getFrameCell(currentPlayerIdx, p.currentFrame, p.rollInFrame + 1).textContent = mark;
+    resultP.textContent = `${p.name}: Frame ${p.currentFrame + 1} Roll ${p.rollInFrame + 1} – ${hit}`;
 
-    resultP.textContent =
-        `${p.name}: Frame ${p.currentFrame + 1} Roll ${p.rollInFrame + 1} – ${hit}`;
+    /* ---- frame control ---- */
+    if (p.rollInFrame === 0 && hit === 10) {
+        // STRIKE: leave empty rack for 3 s, then advance
+        setTimeout(() => advanceFrame(p), 3000);
 
-    /* ----- frame control ----- */
-    if (p.rollInFrame === 0 && hit === 10) {           /* STRIKE */
-        setTimeout(() => advanceFrame(p), 3000);          // pause 3 s
-    }
-    else if (p.rollInFrame === 1) {                    /* second ball done */
-        if (f.pinsLeft === 0) {                          /* SPARE */
-            rackEmpty();                                  // cleared deck
-        } else {                                          /* OPEN FRAME */
-            rackLeave(f.pinsLeft);                        // show final leave
+    } else if (p.rollInFrame === 1) {
+        // SECOND ball finished
+        if (f.pinsLeft === 0) {
+            // SPARE: show empty rack + play SFX
+            rackEmpty();
+            if (SFX.spare) SFX.spare.cloneNode().play();
+        } else {
+            // OPEN FRAME: show how many pins remain
+            const totalHit = f.rolls[0] + f.rolls[1];
+            rackLeave(totalHit);
         }
-        setTimeout(() => advanceFrame(p), 3000);          // pause 3 s
-    }
-    else {
-        p.rollInFrame = 1;                              // prepare for 2nd ball
+        // in both cases, wait 3 s then advance
+        setTimeout(() => advanceFrame(p), 3000);
+
+    } else {
+        // prepare for second ball
+        p.rollInFrame = 1;
     }
 
     return hit;
 }
+  
   
   
 

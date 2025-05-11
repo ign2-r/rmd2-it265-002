@@ -3,9 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Bowl Champs</title>
+    <title>Bowl Champs</title>
+
+    <!-- styles -->
     <link rel="stylesheet" href="style.css">
-    <!-- Google pixel‑arcade font -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 
@@ -15,7 +16,7 @@
     <section id="setupScreen">
         <h1>Bowl Champs</h1>
 
-        <label>
+        <label class="inline">
             Players:
             <select id="playerCount">
                 <option value="2">2</option>
@@ -25,10 +26,29 @@
             </select>
         </label>
 
-        <!-- rows of  “Name | Ball‑type”  inputs created by JS -->
+        <!-- rows injected by JS -->
         <div id="nameInputs"></div>
 
-        <button id="startBtn">Start Game</button>
+        <!-- explanation cards -->
+        <div class="ball-cards">
+            <div class="card">
+                <img src="assets/balls/ball_reactive.png" alt="">
+                <h3>Reactive</h3>
+                <p>Massive hook<br>+2 carry, −1 at edges</p>
+            </div>
+            <div class="card">
+                <img src="assets/balls/ball_urethane.png" alt="">
+                <h3>Urethane</h3>
+                <p>Controlled arc;<br>+1 on hits&nbsp;≥ 2</p>
+            </div>
+            <div class="card">
+                <img src="assets/balls/ball_plastic.png" alt="">
+                <h3>Plastic</h3>
+                <p>Straight spare ball, baseline behavior</p>
+            </div>
+        </div>
+
+        <button id="startBtn">Start&nbsp;Game</button>
     </section>
 
     <!-- ========== GAMEPLAY ========== -->
@@ -38,16 +58,14 @@
         <!-- scoreboard rows injected by JS -->
         <div id="scoreboard"></div>
 
-        <!-- lane + player‑ball sprite -->
+        <!-- lane + ball -->
         <div id="laneWrap">
             <img id="laneImg" src="assets/lane.png" alt="Lane">
             <img id="ballImg" src="assets/balls/ball_reactive.png" alt="Ball">
-            <!-- pin‑rack overlay -->
             <img id="rackImg" src="assets/pins/fullrack.png" alt="Pin rack">
-
         </div>
 
-        <!-- sound effects -->
+        <!-- sounds -->
         <audio id="sfxRoll" src="assets/sfx/roll.mp3" preload="auto"></audio>
         <audio id="sfxGutter" src="assets/sfx/gutter.mp3" preload="auto"></audio>
         <audio id="sfxSingle" src="assets/sfx/singlepin.mp3" preload="auto"></audio>
@@ -55,42 +73,70 @@
         <audio id="sfxMany" src="assets/sfx/manypins.mp3" preload="auto"></audio>
         <audio id="sfxStrike" src="assets/sfx/strike.mp3" preload="auto"></audio>
         <audio id="sfxOoh" src="assets/sfx/ooh.mp3" preload="auto"></audio>
+        <audio id="sfxSpare" src="assets/sfx/spare.mp3" preload="auto"></audio>
 
         <p id="result">Drag the ball to begin.</p>
     </section>
 
-    <!-- ========== SCRIPT ========== -->
+    <!-- ========== SETUP JS ========== -->
     <script>
-        /* build the “Name | Ball Type” rows whenever player count changes -------- */
         function buildNameInputs() {
-            const n = +document.getElementById('playerCount').value;
-            const wrap = document.getElementById('nameInputs');
-            wrap.innerHTML = '';
-            for (let i = 0; i < n; i++) {
-                const row = document.createElement('div');
-                row.style.margin = '8px 0';
+                const n = +document.getElementById('playerCount').value;
+                const wrap = document.getElementById('nameInputs');
+                wrap.innerHTML = '';
 
-                const inp = document.createElement('input');
-                inp.placeholder = `Player ${i + 1} name`;
-                inp.value = `P${i + 1}`;
-                inp.style.width = '150px';
+                for (let i = 0; i < n; i++) {
+                    const row = document.createElement('div');
+                    row.className = 'playerRowSetup';
 
-                const sel = document.createElement('select');
-                sel.innerHTML = `
-      <option value="reactive">Reactive</option>
-      <option value="urethane">Urethane</option>
-      <option value="plastic">Plastic</option>`;
-                sel.style.marginLeft = '8px';
+                    /* name box */
+                    const inp = document.createElement('input');
+                    inp.placeholder = `Player ${i + 1}`;
+                    row.appendChild(inp);
 
-                row.appendChild(inp);
-                row.appendChild(sel);
-                wrap.appendChild(row);
+                    /* ball picker */
+                    const picker = document.createElement('div');
+                    picker.className = 'ballPicker';
+
+                    ['reactive', 'urethane', 'plastic'].forEach(type => {
+                        const id = `p${i}_${type}`;
+
+                        /* hidden radio */
+                        const radio = document.createElement('input');
+                        radio.type = 'radio'; radio.name = `ball${i}`; radio.id = id; radio.value = type;
+
+                        /* label */
+                        const lbl = document.createElement('label');
+                        lbl.htmlFor = id;
+                        lbl.innerHTML = `<img src="assets/balls/ball_${type}.png"><span>${type}</span>`;
+
+                        /* default selection */
+                        if (type === 'reactive') {
+                            radio.checked = true;
+                            lbl.classList.add('selected');
+                        }
+
+                        /* when any radio changes, update highlight */
+                        radio.addEventListener('change', () => {
+                            picker.querySelectorAll('label')
+                                .forEach(l => l.classList.remove('selected'));
+                            lbl.classList.add('selected');
+                        });
+
+                        picker.appendChild(radio);
+                        picker.appendChild(lbl);
+                    });
+
+                    row.appendChild(picker);
+                    wrap.appendChild(row);
+                }
             }
-        }
-        document.getElementById('playerCount').addEventListener('change', buildNameInputs);
-        buildNameInputs();            // build initial rows on page load
+            document.getElementById('playerCount')
+                .addEventListener('change', buildNameInputs);
+            buildNameInputs();
     </script>
 
+    <!-- main game script -->
     <script src="game.js"></script>
 </body>
 

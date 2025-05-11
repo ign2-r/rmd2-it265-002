@@ -19,12 +19,93 @@ input {
 }
 
 /* ---------- Setup Screen ---------- */
-#nameInputs input {
-    display: block;
-    width: 190px;
-    margin: 6px auto;
+
+/* horizontal row: Name | Ball icons */
+.playerRowSetup {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin: 10px auto;
+}
+
+/* name box */
+.playerRowSetup input {
+    width: 160px;
     padding: 6px;
     text-align: center;
+    margin: 0;
+    /* don’t auto‑center as block */
+}
+
+/* icon picker wrapper */
+.ballPicker {
+    display: flex;
+    gap: 12px;
+}
+
+/* hide native radio buttons */
+.ballPicker input {
+    position: absolute;
+    opacity: 0;
+}
+
+/* icon + text block */
+.ballPicker label {
+    width: 80px;
+    /* wide enough for text */
+    border: 2px solid #666;
+    border-radius: 8px;
+    padding: 6px 4px;
+    cursor: pointer;
+    transition: .2s;
+    font-size: 9px;
+    line-height: 1.1;
+    text-transform: capitalize;
+}
+
+.ballPicker label img {
+    width: 56px;
+    height: 56px;
+    display: block;
+    margin: 0 auto 4px;
+}
+
+/* highlight selected ball */
+.ballPicker input:checked+label {
+    border-color: #00ff95;
+}
+
+/* explanation cards */
+.ball-cards {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 28px 0 20px;
+}
+
+.card {
+    width: 140px;
+    background: #222;
+    border: 2px solid #555;
+    border-radius: 8px;
+    padding: 10px 6px;
+}
+
+.card img {
+    width: 80px;
+    height: 80px;
+}
+
+.card h3 {
+    font-size: 12px;
+    margin: 6px 0;
+}
+
+.card p {
+    font-size: 10px;
+    line-height: 1.35;
 }
 
 /* ---------- Scoreboard ---------- */
@@ -99,7 +180,7 @@ input {
     width: 400px;
     height: 300px;
     margin: 200px auto 26px;
-    /* shifted DOWN 180 px */
+    /* custom offset to clear scoreboard */
 }
 
 #laneImg {
@@ -130,7 +211,7 @@ input {
     left: 50%;
     transform: translateX(-50%);
     top: -200px;
-    /* sits just above the lowered lane */
+    /* aligns with lowered lane */
     pointer-events: none;
 }
 
@@ -139,4 +220,4 @@ input {
     margin-top: 60px;
 }
 
-/* extra space below the lane */
+/* space beneath lane */

@@ -29,14 +29,30 @@ const SFX = {
     gutter: document.getElementById("sfxGutter"),
     single: document.getElementById("sfxSingle"),
     few: document.getElementById("sfxFew"),
-    many: document.getElementById("sfxMany")
+    many: document.getElementById("sfxMany"),
+    strike: document.getElementById("sfxStrike"),
+    ooh: document.getElementById("sfxOoh"),
 };
 function playResultSfx(pins) {
-    if (pins === 0) SFX.gutter.cloneNode().play();
-    else if (pins === 1) SFX.single.cloneNode().play();
-    else if (pins <= 5) SFX.few.cloneNode().play();
-    else SFX.many.cloneNode().play();
+    if (pins === 10) {                    // STRIKE
+        SFX.strike.cloneNode().play();     // boom!
+        SFX.many.cloneNode().play();     // crowd cheer
+        return;
+    }
+
+    if (pins === 0) {                     // GUTTER
+        SFX.gutter.cloneNode().play();     // ball thunk
+        SFX.ooh.cloneNode().play();    // disappointed crowd
+        return;
+    }
+
+    if (pins === 1) { SFX.single.cloneNode().play(); return; }
+    if (pins <= 5) { SFX.few.cloneNode().play(); return; }
+
+    /* 6‑9 pins */
+    SFX.many.cloneNode().play();
 }
+  
 
 /* ====================================================================
    1.  SETUP SCREEN
@@ -196,12 +212,6 @@ function resetBallPos() {
     ballImg.style.top = `${y}px`;
 }
 
-/* dev RNG button */
-rollBtn.addEventListener("click", () => {
-    const hit = firePins(Math.floor(Math.random() * 11));
-    playResultSfx(hit);
-});
-
 /* ====================================================================
    4.  SKILL TABLE (zone + speed → requested pins)
 ==================================================================== */
@@ -259,14 +269,14 @@ function ballMod(hit, zone, type) {
    5.  ROLL PROCESSING (returns actual pins)
 ==================================================================== */
 function firePins(requestPins) {
-    const p = players[currentPlayerIdx];
-    if (p.done) { nextPlayer(); return 0; }
+    const idx = currentPlayerIdx;          // ← remember whose turn this is
+    const p = players[idx];
 
     const hit = p.currentFrame < 9
         ? rollRegular(p, requestPins)
         : rollTenth(p, requestPins);
 
-    updateRunningTotal(p);
+    updateRunningTotal(p, idx);
     updateActiveHighlight();
     return hit;
 }
@@ -338,10 +348,10 @@ function nextPlayer() {
 /* ====================================================================
    6.  SCORING UTILITIES
 ==================================================================== */
-function updateRunningTotal(p) {
-    const totals = calcTotals(p.frames);
-    getTotalCell(currentPlayerIdx).textContent = totals[totals.length - 1] ?? 0;
-}
+function updateRunningTotal(player, idx) {
+    const totals = calcTotals(player.frames);
+    getTotalCell(idx).textContent = totals[totals.length - 1] ?? 0;
+  }
 
 /* cumulate scores following bowling rules */
 function calcTotals(frms) {

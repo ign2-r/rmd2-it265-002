@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Bowl Champs</title>
+    <title>Bowl Champs</title>
 
     <!-- styles -->
     <link rel="stylesheet" href="style.css">
@@ -14,41 +14,42 @@
 
     <!-- ========== LANDING / SETUP ========== -->
     <section id="setupScreen">
-        <h1>Bowl Champs</h1>
+        <div class="setup-panel">
+            <img src="assets/crown.png" alt="Crown" class="setup-crown">
 
-        <label class="inline">
-            Players:
-            <select id="playerCount">
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-            </select>
-        </label>
+            <label class="inline">
+                Players:
+                <select id="playerCount">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </label>
 
-        <!-- rows injected by JS -->
-        <div id="nameInputs"></div>
+            <div id="nameInputs"></div>
 
-        <!-- explanation cards -->
-        <div class="ball-cards">
-            <div class="card">
-                <img src="assets/balls/ball_reactive.png" alt="">
-                <h3>Reactive</h3>
-                <p>Massive hook<br>+2 carry, −1 at edges</p>
+            <!-- ========= BALL INFO CARDS ========= -->
+            <div class="ball-cards">
+                <div class="card">
+                    <img src="assets/balls/ball_reactive.png" alt="Reactive Ball">
+                    <h3>Reactive</h3>
+                    <p>Massive hook<br>+2 carry, –1 at edges</p>
+                </div>
+                <div class="card">
+                    <img src="assets/balls/ball_urethane.png" alt="Urethane Ball">
+                    <h3>Urethane</h3>
+                    <p>Controlled arc;<br>+1 on hits ≥ 2</p>
+                </div>
+                <div class="card">
+                    <img src="assets/balls/ball_plastic.png" alt="Plastic Ball">
+                    <h3>Plastic</h3>
+                    <p>Straight spare ball;<br>baseline behavior</p>
+                </div>
             </div>
-            <div class="card">
-                <img src="assets/balls/ball_urethane.png" alt="">
-                <h3>Urethane</h3>
-                <p>Controlled arc;<br>+1 on hits&nbsp;≥ 2</p>
-            </div>
-            <div class="card">
-                <img src="assets/balls/ball_plastic.png" alt="">
-                <h3>Plastic</h3>
-                <p>Straight spare ball, baseline behavior</p>
-            </div>
+
+            <button id="startBtn">Start Game</button>
         </div>
-
-        <button id="startBtn">Start&nbsp;Game</button>
     </section>
 
     <!-- ========== GAMEPLAY ========== -->
@@ -78,62 +79,75 @@
         <p id="result">Drag the ball to begin.</p>
     </section>
 
+    <!-- ========== END-GAME CELEBRATION ========== -->
+    <section id="endScreen" style="display:none;">
+        <div class="celebrationCard">
+            <h2 id="winnerName">Your Bowl Champ is:</h2>
+            <img id="crownImg" src="assets/crown.png" alt="Crown">
+            <h3>Final Standings</h3>
+            <ol id="finalStandings"></ol>
+            <button id="playAgainBtn">Play Again</button>
+            <audio id="sfxFanfare" src="assets/sfx/fanfare.mp3" preload="auto"></audio>
+        </div>
+    </section>
+
     <!-- ========== SETUP JS ========== -->
     <script>
         function buildNameInputs() {
-                const n = +document.getElementById('playerCount').value;
-                const wrap = document.getElementById('nameInputs');
-                wrap.innerHTML = '';
+            const n = +document.getElementById('playerCount').value;
+            const wrap = document.getElementById('nameInputs');
+            wrap.innerHTML = '';
 
-                for (let i = 0; i < n; i++) {
-                    const row = document.createElement('div');
-                    row.className = 'playerRowSetup';
+            for (let i = 0; i < n; i++) {
+                const row = document.createElement('div');
+                row.className = 'playerRowSetup';
 
-                    /* name box */
-                    const inp = document.createElement('input');
-                    inp.placeholder = `Player ${i + 1}`;
-                    row.appendChild(inp);
+                /* name box */
+                const inp = document.createElement('input');
+                inp.placeholder = `Player ${i + 1}`;
+                row.appendChild(inp);
 
-                    /* ball picker */
-                    const picker = document.createElement('div');
-                    picker.className = 'ballPicker';
+                /* ball picker */
+                const picker = document.createElement('div');
+                picker.className = 'ballPicker';
 
-                    ['reactive', 'urethane', 'plastic'].forEach(type => {
-                        const id = `p${i}_${type}`;
+                ['reactive', 'urethane', 'plastic'].forEach(type => {
+                    const id = `p${i}_${type}`;
 
-                        /* hidden radio */
-                        const radio = document.createElement('input');
-                        radio.type = 'radio'; radio.name = `ball${i}`; radio.id = id; radio.value = type;
+                    /* hidden radio */
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = `ball${i}`;
+                    radio.id = id;
+                    radio.value = type;
 
-                        /* label */
-                        const lbl = document.createElement('label');
-                        lbl.htmlFor = id;
-                        lbl.innerHTML = `<img src="assets/balls/ball_${type}.png"><span>${type}</span>`;
+                    /* label */
+                    const lbl = document.createElement('label');
+                    lbl.htmlFor = id;
+                    lbl.innerHTML = `<img src="assets/balls/ball_${type}.png"><span>${type}</span>`;
 
-                        /* default selection */
-                        if (type === 'reactive') {
-                            radio.checked = true;
-                            lbl.classList.add('selected');
-                        }
+                    /* default selection */
+                    if (type === 'reactive') {
+                        radio.checked = true;
+                        lbl.classList.add('selected');
+                    }
 
-                        /* when any radio changes, update highlight */
-                        radio.addEventListener('change', () => {
-                            picker.querySelectorAll('label')
-                                .forEach(l => l.classList.remove('selected'));
-                            lbl.classList.add('selected');
-                        });
-
-                        picker.appendChild(radio);
-                        picker.appendChild(lbl);
+                    /* when any radio changes, update highlight */
+                    radio.addEventListener('change', () => {
+                        picker.querySelectorAll('label').forEach(l => l.classList.remove('selected'));
+                        lbl.classList.add('selected');
                     });
 
-                    row.appendChild(picker);
-                    wrap.appendChild(row);
-                }
+                    picker.appendChild(radio);
+                    picker.appendChild(lbl);
+                });
+
+                row.appendChild(picker);
+                wrap.appendChild(row);
             }
-            document.getElementById('playerCount')
-                .addEventListener('change', buildNameInputs);
-            buildNameInputs();
+        }
+        document.getElementById('playerCount').addEventListener('change', buildNameInputs);
+        buildNameInputs();
     </script>
 
     <!-- main game script -->

@@ -361,30 +361,90 @@ function rollRegular(p, request) {
   
   
 
-/* ----- Frame 10 ----- */
+/* ----- Frame 10 (strike, spare, open & proper rack resets) ----- */
 function rollTenth(p, request) {
     const f = p.frames[9];
+    const rollIdx = p.rollInFrame;              // 0, 1 or 2
     const hit = Math.min(request, f.pinsLeft);
     f.rolls.push(hit);
 
+    // 1) RACK OVERLAY
+    if (rollIdx === 0) {
+        // — first ball —
+        if (hit === 10) {
+            rackEmpty();     // show strike
+        } else {
+            rackLeave(hit);  // show pins knocked
+        }
+
+    } else if (rollIdx === 1) {
+        // — second ball —
+        const first = f.rolls[0];
+        if (first === 10) {
+            // bonus after strike
+            if (hit === 10) {
+                rackEmpty();
+            } else {
+                rackLeave(hit);
+            }
+        } else if (first + hit === 10) {
+            // spare
+            rackEmpty();
+        } else {
+            // open frame
+            rackLeave(first + hit);
+        }
+
+    } else {
+        // — third bonus ball —
+        rackLeave(hit);
+    }
+
+    // 2) MARK THE CELL
     let mark;
-    if (hit === 10) mark = "X";
-    else if (p.rollInFrame === 1 && f.rolls[0] + hit === 10 && f.rolls[0] !== 10) mark = "/";
-    else mark = hit === 0 ? "‑" : hit;
-    getFrameCell(currentPlayerIdx, 9, p.rollInFrame + 1).textContent = mark;
+    if (hit === 10) {
+        mark = "X";
+    } else if (
+        rollIdx > 0 &&
+        f.rolls[0] < 10 &&
+        f.rolls[0] + hit === 10
+    ) {
+        mark = "/";
+    } else {
+        mark = hit === 0 ? "-" : hit;
+    }
+    getFrameCell(currentPlayerIdx, 9, rollIdx + 1).textContent = mark;
 
-    if (hit === 10 || (p.rollInFrame === 1 && f.rolls[0] + f.rolls[1] === 10))
+    // 3) UPDATE pinsLeft
+    if (
+        hit === 10 ||
+        (rollIdx === 1 && f.rolls[0] < 10 && f.rolls[0] + hit === 10)
+    ) {
         f.pinsLeft = 10;
-    else f.pinsLeft -= hit;
+    } else {
+        f.pinsLeft -= hit;
+    }
 
-    resultP.textContent = `${p.name}: Frame 10 Roll ${p.rollInFrame + 1} – ${hit}`;
+    // 4) RESULT TEXT
+    resultP.textContent = `${p.name}: Frame 10 Roll ${rollIdx + 1} – ${hit}`;
 
+    // 5) ADVANCE / BONUS
     p.rollInFrame++;
-    const bonus = f.rolls[0] === 10 || (f.rolls.length >= 2 && f.rolls[0] + f.rolls[1] === 10);
-    if (p.rollInFrame >= (bonus ? 3 : 2)) { p.done = true; nextPlayer(); }
+    const needsBonus =
+        f.rolls[0] === 10 ||
+        (f.rolls[0] < 10 && f.rolls[0] + f.rolls[1] === 10);
+    const rollsNeeded = needsBonus ? 3 : 2;
+
+    if (p.rollInFrame >= rollsNeeded) {
+        p.done = true;
+        frameAdvanced = true;               // flag so finishDrag re-racks once
+        setTimeout(() => nextPlayer(), 3000);
+    }
 
     return hit;
 }
+  
+    
 
 /* ----- Frame advance / rotation ----- */
 function advanceFrame(p) {
@@ -397,7 +457,7 @@ function advanceFrame(p) {
   
 function nextPlayer() {
     if (!players.some(pl => !pl.done)) {
-        resultP.textContent += "  •  Game complete!";
+        showEndScreen();
         return;
     }
     do {
@@ -455,3 +515,59 @@ function strikeBonus(frms, idx) {
     }
     return null;
 }
+
+function showEndScreen() {
+    // 1. sort players by final total descending
+    const ranked = players
+        .map((p, i) => ({ name: p.name, score: calcTotals(p.frames).slice(-1)[0] || 0 }))
+        .sort((a, b) => b.score - a.score);
+
+    // 2. winner banner
+    const winnerEl = document.getElementById('winnerName');
+    winnerEl.textContent = `🏆 ${ranked[0].name} 🏆`;
+
+    // 3. fill standings list
+    const list = document.getElementById('finalStandings');
+    list.innerHTML = ranked
+        .map(r => `<li>${r.name}: ${r.score}</li>`)
+        .join('');
+
+    // 4. show overlay & play fanfare
+    document.getElementById('endScreen').style.display = 'flex';
+    // show & animate the crown
+    const crown = document.getElementById('crownImg');
+    crown.classList.remove('drop-crown');           // reset if replaying
+    void crown.offsetWidth;                          // force reflow
+    crown.classList.add('drop-crown');
+    document.getElementById('sfxFanfare').cloneNode().play();
+
+    // 5. hook Play Again
+    document.getElementById('playAgainBtn').onclick = () => {
+        location.reload();  // simplest restart
+    };
+  }
+
+// ======= DEBUG: Jump straight to 10th frame =======
+function skipToTenth() {
+    // 1) Set every player’s frame to 9 (the 10th)
+    players.forEach(p => {
+        p.currentFrame = 9;
+        p.rollInFrame = 0;
+        p.frames[9] = { rolls: [], pinsLeft: 10 };
+    });
+
+    // 2) Reset UI
+    buildScoreboard();
+    lockNameWidths();
+    updateActiveHighlight();
+    rackFull();
+    resultP.textContent = `${players[currentPlayerIdx].name}, Frame 10 Roll 1 – ready`;
+
+    // 3) Make sure you can drag again
+    ballImg.style.display = 'block';
+    laneWrap.style.pointerEvents = 'auto';
+}
+
+// Expose to the console:
+window.skipToTenth = skipToTenth;
+  

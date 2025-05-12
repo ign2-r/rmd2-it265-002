@@ -1,6 +1,6 @@
 # IT265 Design Treatment Checkpoint
 
-[![FiJXS_J86eM](https://img.youtube.com/vi/FiJXS_J86eM/0.jpg)](https://www.youtube.com/watch?v=FiJXS_J86eM)
+[![FiJXS_J86eM](https://img.youtube.com/vi/uZ_1ts1hiMI/0.jpg)](https://youtu.be/uZ_1ts1hiMI)
 
 ## Change Log
 # Initial Concept -> Physical Prototype

@@ -1,4 +1,7 @@
 # IT265 Design Treatment Checkpoint
+
+[![FiJXS_J86eM](https://img.youtube.com/vi/FiJXS_J86eM/0.jpg)](https://www.youtube.com/watch?v=FiJXS_J86eM)
+
 ## Change Log
 # Initial Concept -> Physical Prototype
 - D10 dice to simulate pin knockdowns
